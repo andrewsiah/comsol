@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 16 14:03:13 2020
+Created on Fri Jul 17 11:17:00 2020
 
-@author: andrew
+@author: Andrew
 """
+
 import math
 import time
 #This doc is written with meter as standard metric. 
@@ -13,7 +14,7 @@ import time
 
 
 
-def generate(r_inner, r_outer, height, r_powder, decimal_place):
+def generate(r_inner, r_outer, height, r_powder, decimal_place, file_name):
     
     """
     Parameters
@@ -23,18 +24,19 @@ def generate(r_inner, r_outer, height, r_powder, decimal_place):
     height : float - height of metal powder
     r_powder : float - radius of metal powder
     decimal_place : int - number of decimal place of r, theta, and x, y
-
     Returns
     -------
-    A .java file with necessary geoms of metal powder ready 
-
+    A .txt file with necessary geoms of metal powder ready 
     """
     
+    f = open(file_name + ".txt" , "a")
+    
+    
     d_powder = 2*r_powder #distance between 2 powder
-    height_count = 0
+    z = 0
     
     powder_no = 0 #Keeps count of number of powder produced, and used in naming
-    while height_count < height:
+    while z <= height:
         r_count = r_inner
         while r_count <= r_outer:
             theta = angle(d_powder, r_count)
@@ -49,10 +51,14 @@ def generate(r_inner, r_outer, height, r_powder, decimal_place):
                 #converts cylindrical plane to cartesian plane.
                 x = r_count * math.cos(theta_count)
                 y = r_count * math.sin(theta_count)
-                print(powder_no, round(x,decimal_place), round(y,decimal_place), round(height_count,decimal_place))
+                #print(powder_no, round(x,decimal_place), round(y,decimal_place), round(z,decimal_place))
+                x_print = "%."
+                y_print = "\"%."+decimal_place"f\" %y"
+                z_print = "\"%."+str(decimal_place)+"f\" %z"
+                printer(x_print,y_print,z_print,powder_count,r_powder,f)
             r_count += d_powder
-        height_count += d_powder
-        print("new height!", height_count)
+        z += d_powder
+        print("new height!", z)
     
     
 def angle(d_powder, radius):
@@ -60,17 +66,31 @@ def angle(d_powder, radius):
     # theta = 2*arcsin((d_powder)/2*radius)
     return 2*math.asin(d_powder/(2*radius))
     
-def printer(x_coor, y_coor, number):
+def printer(x, y, z, number, r_powder, file):
     """
     Description: Prints out the geometry of the powder in java syntax
-
     """
-    
-    
+    file.write("model.component(\"comp1\").geom(\"geom1\").create(\"sph"+str(number)+"\", \"Sphere\");\n")
+    file.write("model.component(\"comp1\").geom(\"geom1\").feature(\"sph"+str(number)+"\").set(\"pos\", new String[]{\""+x+"\", \""+y+"\", \""+z+"\"});\n")
+    file.write("model.component(\"comp1\").geom(\"geom1\").feature(\"sph"+str(number)+"\").set(\"r\", \""+str(r_powder)+"\");\n")        
     
     return None
 
 
+"""
+model.component("comp1").geom("geom1").create("sph13", "Sphere");
+    model.component("comp1").geom("geom1").feature("sph13").active(false);
+    model.component("comp1").geom("geom1").create("sph14", "Sphere");
+    model.component("comp1").geom("geom1").feature("sph14").active(false);
+    model.component("comp1").geom("geom1").feature("sph14").label("Powder");
+    model.component("comp1").geom("geom1").feature("sph14").set("pos", new String[]{"powdRad", "powdRad", "powdRad"});
+    model.component("comp1").geom("geom1").feature("sph14").set("r", "powdRad");
+"""
+
+
+    
+
+
 start_time = time.time()
-generate(0.0011, 0.0014, 0.005, 0.00005,5)
+generate(0.0011, 0.0014, 0.0005, 0.00005,9,"test1")
 print("--- %s seconds ---" % (time.time() - start_time))
